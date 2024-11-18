@@ -54,6 +54,40 @@ app.post("/movies", async (req, res) => {
   res.status(201).send();
 });
 
+app.put("/movies/:id", async (req, res) => {
+  // pegar o id do registro a ser atualizado
+  const id = Number(req.params.id);
+  try {
+    const movie = await prisma.movie.findUnique({
+      where: {
+        id,
+      },
+    });
+
+    if (!movie) {
+      return res.status(404).send({ message: "Filme não encontrado" });
+    }
+
+    const data = { ...req.body };
+    data.release_date = data.release_date
+      ? new Date(data.release_date)
+      : undefined;
+    // pegar os dados do registro que será atualizado e atualizar no prisma
+    await prisma.movie.update({
+      where: {
+        id,
+      },
+      data: data,
+    });
+  } catch (err) {
+    return res
+      .status(500)
+      .send({ message: "Falha ao atualizar o registro do filme" });
+  }
+  // retornar o status correto informado que o filme foi atualizado
+  res.status(200).send();
+});
+
 app.listen(port, () => {
   console.log(`Servidor em execução na porta ${port}`);
 });

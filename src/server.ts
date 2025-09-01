@@ -1,13 +1,14 @@
 import express from "express";
 import { PrismaClient } from "./generated/prisma";
-import console = require("console");
-import log = require("console");
+import swaggerUi from "swagger-ui-express";
+import swaggerDocument from "../swagger.json";
 
 const port = 3000;
 const app = express();
 const prisma = new PrismaClient();
 
 app.use(express.json());
+app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 app.get("/movies", async (_, res) => {
   const movies = await prisma.movie.findMany({
@@ -63,14 +64,18 @@ app.put("/movies/:id", async (req, res) => {
       return res.status(404).send({ message: "Filme não encontrado" });
     }
     const data = { ...req.body };
-    data.release_date = data.release_date ? new Date(data.release_date) : undefined;
-  
+    data.release_date = data.release_date
+      ? new Date(data.release_date)
+      : undefined;
+
     await prisma.movie.update({
       where: { id },
       data: data,
     });
   } catch (error) {
-    return res.status(500).send({ message: "Falha ao atualizar o registro do filme"} )
+    return res
+      .status(500)
+      .send({ message: "Falha ao atualizar o registro do filme" });
   }
   res.status(200).send("Filme atualizado com sucesso!");
 });
@@ -86,7 +91,9 @@ app.delete("/movies/:id", async (req, res) => {
     }
     await prisma.movie.delete({ where: { id } });
   } catch (error) {
-    return res.status(500).send({ message: "Não foi possível remover o filme" });
+    return res
+      .status(500)
+      .send({ message: "Não foi possível remover o filme" });
   }
 });
 
@@ -108,7 +115,7 @@ app.get("/movies/:genreName", async (req, res) => {
     });
     res.status(200).send(moviesFilteredByGenreName);
   } catch (error) {
-    res.status(500).send({message: "Falha ao filtrar filmes por gênero"})
+    res.status(500).send({ message: "Falha ao filtrar filmes por gênero" });
   }
 });
 
